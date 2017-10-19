@@ -92,8 +92,8 @@ def log_vector(tag, values):
     hist.min = 0
     hist.max = len(values) - 1
     hist.num = len(values)
-    hist.sum = float(np.sum(values))
-    hist.sum_squares = float(np.sum(values ** 2))
+    hist.sum = float(np.sum(np.arange(hist.num)))
+    hist.sum_squares = float(np.sum(np.arange(hist.num) ** 2))
 
     for idx, c in enumerate(values):
         hist.bucket_limit.append(idx)
