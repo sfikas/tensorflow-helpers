@@ -1,26 +1,29 @@
+"""
+
+    G.Sfikas Oct 2017
+    Based on gist code from gyglim/tensorboard_logging.py
+
+"""
+
+import numpy as np
 import Image
 from StringIO import StringIO
-from tensorflow import Summary
-from numpy import uint8
+from tensorflow import Summary, HistogramProto
 
 def log_scalar(tag, value):
     """
     log_scalar
-
     Logs a scalar.
-    Gist code adapted from gyglim/tensorboard_logging.py
     """
     return Summary(value=[Summary.Value(tag=tag, simple_value=value)])
 
 def log_images(tag, images, tagsuffix=''):
     """
     log_images
-
     Logs a list of images.
-    Gist code adapted from gyglim/tensorboard_logging.py
     """
     def convert_to_uint8(img):
-        return uint8(img * 255)
+        return np.uint8(img * 255)
 
     if not type(images) == list:
         img = images
@@ -44,3 +47,56 @@ def log_images(tag, images, tagsuffix=''):
             # Create a Summary value
             im_summaries.append(Summary.Value(tag='%s/%d%s' % (tag, nr, tagsuffix), image=img_sum))
         return Summary(value=im_summaries)
+
+def log_histogram(tag, values, step, bins=1000):
+    """
+    log_histogram
+    Logs the histogram of a list/vector of values.
+    """
+    # Convert to a numpy array
+    values = np.array(values)
+
+    # Create histogram using numpy
+    counts, bin_edges = np.histogram(values, bins=bins)
+
+    # Fill fields of histogram proto
+    hist = HistogramProto()
+    hist.min = float(np.min(values))
+    hist.max = float(np.max(values))
+    hist.num = int(np.prod(values.shape))
+    hist.sum = float(np.sum(values))
+    hist.sum_squares = float(np.sum(values ** 2))
+
+    # Requires equal number as bins, where the first goes from -DBL_MAX to bin_edges[1]
+    # See https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/framework/summary.proto#L30
+    # Thus, we drop the start of the first bin
+    bin_edges = bin_edges[1:]
+
+    # Add bin edges and counts
+    for edge in bin_edges:
+        hist.bucket_limit.append(edge)
+    for c in counts:
+        hist.bucket.append(c)
+
+    return Summary(value=[Summary.Value(tag=tag, histo=hist)])
+
+def log_vector(tag, values):
+    """
+    log_histogram
+    Logs the a vector of values.
+    """
+    values = np.array(values)
+
+    # Fill fields of histogram proto
+    hist = HistogramProto()
+    hist.min = float(np.min(values))
+    hist.max = float(np.max(values))
+    hist.num = int(np.prod(values.shape))
+    hist.sum = float(np.sum(values))
+    hist.sum_squares = float(np.sum(values ** 2))
+
+    for idx, c in enumerate(values):
+        hist.bucket_limit.append(idx+1)
+        hist.bucket.append(c)
+
+    return Summary(value=[Summary.Value(tag=tag, histo=hist)])
