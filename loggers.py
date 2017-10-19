@@ -89,9 +89,9 @@ def log_vector(tag, values):
 
     # Fill fields of histogram proto
     hist = HistogramProto()
-    hist.min = float(np.min(values))
-    hist.max = float(np.max(values))
-    hist.num = int(np.prod(values.shape))
+    hist.min = 0
+    hist.max = len(values) - 1
+    hist.num = len(values)
     hist.sum = float(np.sum(values))
     hist.sum_squares = float(np.sum(values ** 2))
 
