@@ -83,9 +83,9 @@ def log_histogram(tag, values, step, bins=1000):
 def log_vector(tag, values):
     """
     log_histogram
-    Logs the a vector of values.
+    Logs a vector of values.
     """
-    values = np.array(values)
+    values = np.array(values).flatten()
 
     # Fill fields of histogram proto
     hist = HistogramProto()
@@ -96,7 +96,7 @@ def log_vector(tag, values):
     hist.sum_squares = float(np.sum(values ** 2))
 
     for idx, c in enumerate(values):
-        hist.bucket_limit.append(idx+1)
+        hist.bucket_limit.append(idx)
         hist.bucket.append(c)
 
     return Summary(value=[Summary.Value(tag=tag, histo=hist)])
