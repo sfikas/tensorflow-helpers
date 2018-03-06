@@ -9,6 +9,7 @@ import numpy as np
 import Image
 from StringIO import StringIO
 from tensorflow import Summary, HistogramProto
+import matplotlib.pyplot as plt
 
 def log_scalar(tag, value):
     """
@@ -16,6 +17,15 @@ def log_scalar(tag, value):
     Logs a scalar.
     """
     return Summary(value=[Summary.Value(tag=tag, simple_value=value)])
+
+def log_colorimages(tag, images, tagsuffix=''):
+    img = images
+    s = StringIO()
+    plt.imsave(s, img, format='png')
+    img_sum = Summary.Image(encoded_image_string=s.getvalue(),
+                               height=img.shape[0],
+                               width=img.shape[1])
+    return Summary(value=[Summary.Value(tag='%s%s' % (tag, tagsuffix), image=img_sum)])
 
 def log_images(tag, images, tagsuffix=''):
     """
